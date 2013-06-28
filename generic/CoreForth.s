@@ -1,6 +1,7 @@
 @ -- vim:syntax=asm:foldmethod=marker:foldmarker=@\ --\ ,@\ ---:
 
-    .org 0x400
+    .section ".data.forth", "w"
+    .section ".text.forth", "x"
 
 @ ---------------------------------------------------------------------
 @ -- Variable definitions ---------------------------------------------
@@ -13,7 +14,7 @@
     .set F_FLAGSMASK,       0x7f
 
     .set link,                 0
-    .set ram_here, ram_start
+@    .set ram_here, ram_start
 
 @ ---------------------------------------------------------------------
 @ -- Macros -----------------------------------------------------------
@@ -108,10 +109,19 @@
     .endm
 
     .macro defvar name, label, size=4
-    defconst \name,\label,ram_here
-    .set addr_\label, ram_here
-    .set ram_here, ram_here + \size
+    .pushsection ".data.forth"
+    .global addr_\label
+    .set addr_\label , .
+    .fill \size
+    .popsection
+    defconst \name,\label,addr_\label
     .endm
+
+@    .macro defvar name, label, size=4
+@    defconst \name,\label,ram_here
+@    .set addr_\label, ram_here
+@    .set ram_here, ram_here + \size
+@    .endm
 
     .macro defdata name, label
     defword \name,\label,,DODATA
@@ -131,7 +141,7 @@ cold_start:
     .word TASKZRTOS, RZ, STORE
     .word TASKZTOS, SZ, STORE
     .word LIT, 10, BASE, STORE
-    .word LIT, data_start, DP, STORE
+    .word LIT, free_ram_start, DP, STORE
     .word LIT, last_word, LATEST, STORE
     .word SERIAL_CON
     .word COLD
@@ -1541,7 +1551,7 @@ QUOTE_CHARS:
     defword "VALID-ADDR?", ISVALIDADDR
     .word DUP, LIT, 0x400, LIT, last_word, FROMLINK, CELL, ADD, WITHIN, QDUP, QBRANCH, 1f - .
     .word NIP, EXIT
-1:  .word LIT, ram_start, LIT, ram_top, WITHIN, EXIT
+1:  .word LIT, free_ram_start, LIT, ram_top, WITHIN, EXIT
 
 
     defword "XT?", XTQ

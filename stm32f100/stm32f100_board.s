@@ -54,71 +54,70 @@ init_board:
     msr primask, r0
     mov r0, #0
     msr basepri, r0
-    ldr r0, =(NVIC + NVIC_SETENA_BASE)
+    ldr r0, =base_NVIC
     mov r1, #0
-    str r1, [r0]
+    str r1, [r0, #offset_NVIC_SETENA_BASE]
 
     @ enable clocks on all timers, UARTS, ADC, PWM, SSI and I2C and GPIO ports
-    ldr r0, =RCC
+    ldr r0, =base_RCC
     ldr r1, =0xffffffff
-    str r1, [r0, #RCC_APB1ENR]
-    str r1, [r0, #RCC_APB2ENR]
+    str r1, [r0, #offset_RCC_APB1ENR]
+    str r1, [r0, #offset_RCC_APB2ENR]
 
     @ enable pins on GPIOA
-    ldr r0, =(GPIOA + GPIO_CRH)
+    ldr r0, =base_GPIOA
     ldr r1, =0x444444b4
-#    ldr r1, =0x44444b44
-    str r1, [r0]
+    str r1, [r0, #offset_GPIO_CRH]
 
     @ enable UART
-    ldr r0, =UART1
+    ldr r0, =base_UART1
     ldr r1, =0x200c
-    str r1, [r0, #UART_CR1]
+    str r1, [r0, #offset_UART_CR1]
 
     @ set UART baud rate
     # rounds the divisor up/down
     ldr r1, =( ((2*CLOCK_FREQ)+BAUD_RATE) / (2*BAUD_RATE) )
 #    ldr r1, =(8000000 / 115200)
-    str r1, [r0, #UART_BRR]
+    str r1, [r0, #offset_UART_BRR]
 
     @ enable SYSTICK
-    ldr r0, =STRELOAD
+    ldr r0, =addr_STRELOAD
     ldr r1, =0x00ffffff
     str r1, [r0]
-    ldr r0, =STCTRL
+    ldr r0, =addr_STCTRL
     mov r1, #5
     str r1, [r0]
 
     @ unlock flash controller
-    ldr r0, =FPEC
+    ldr r0, =base_FPEC
     ldr r1, =0x45670123
-    str r1, [r0, #FLASH_KEYR]
+    str r1, [r0, #offset_FLASH_KEYR]
     ldr r1, =0xcdef89ab
-    str r1, [r0, #FLASH_KEYR]
+    str r1, [r0, #offset_FLASH_KEYR]
 
     pop {pc}
     .ltorg
 
 readkey:
     push {r1, r2, r3, lr}
-    ldr r1, =UART1
+    ldr r1, =base_UART1
     mov r2, #32
-1:  ldr r3, [r1, #UART_SR]
+1:  ldr r3, [r1, #offset_UART_SR]
     and r3, r2
     cmp r3, r2
     bne 1b
-    ldrb r0, [r1, #UART_DR]
+    ldrb r0, [r1, #offset_UART_DR]
     pop {r1, r2, r3, pc}
 
 putchar:
     push {r1, r2, r3, lr}
     mov r2, #0x80
-    ldr r3, =UART1
-1:  ldr r1, [r3, #UART_SR]
+    ldr r3, =base_UART1
+1:  ldr r1, [r3, #offset_UART_SR]
     and r1, r2
     cmp r1, r2
     bne 1b
-    str r0, [r3, #UART_DR]
+    str r0, [r3, #offset_UART_DR]
     pop {r1, r2, r3, pc}
 
 @ ---------------------------------------------------------------------
@@ -218,11 +217,10 @@ adcomp_handler:
     .include "precompiled_words.s"
     .ltorg
 
+    .set last_builtin_word, link
+
     defword "COLD", COLD
     .word LIT, eval_words, EVALUATE, QUIT
 eval_words:
     .include "stm32f100_ram.gen.s"
     .word 0xffffffff
-
-    .set last_word, link
-    .set data_start, ram_here

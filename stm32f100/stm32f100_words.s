@@ -10,8 +10,8 @@
 
     defcode "KEY?", KEYQ
     mov r2, #0
-    ldr r0, =UART1
-    ldr r1, [r0, #UART_SR]
+    ldr r0, =base_UART1
+    ldr r1, [r0, #offset_UART_SR]
     ands r3, #32
     beq 1f
     mvn r2, #1

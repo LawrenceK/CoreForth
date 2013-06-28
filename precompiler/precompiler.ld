@@ -11,15 +11,19 @@ MEMORY
 SECTIONS
 {
     .flash : {
-        *(.text)
-        *(.rodata)
         KEEP(*(interrupt_vector))
+        *(.text)
+        *(.text.*)
+        *(.rodata)
+        *(.rodata.*)
     } > FLASH
 
     .data : {
-        ram_start = . ;
         *(.data)
+        *(.data.*)
         *(.bss)
+        *(.bss.*)
+        free_ram_start = . ;
     } >SRAM AT> FLASH
 
     ram_top = 0x20000000 + 0x00010000 ;

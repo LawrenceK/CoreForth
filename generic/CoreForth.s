@@ -142,13 +142,16 @@ cold_start:
     .word TASKZTOS, SZ, STORE
     .word LIT, 10, BASE, STORE
     .word LIT, free_ram_start, DP, STORE
-    .word LIT, last_word, LATEST, STORE
+    .word LIT, last_builtin_word, LATEST, STORE
     .word SERIAL_CON
     .word COLD
     .ltorg
 
 @ ---------------------------------------------------------------------
 @ -- Interpreter code -------------------------------------------------
+
+    .global first_builtin_word
+    .set first_builtin_word , .
 
 DOCOL:
     adds r6, r6, #4
@@ -1549,7 +1552,7 @@ QUOTE_CHARS:
 4:  .word TWODROP, EXIT
 
     defword "VALID-ADDR?", ISVALIDADDR
-    .word DUP, LIT, 0x400, LIT, last_word, FROMLINK, CELL, ADD, WITHIN, QDUP, QBRANCH, 1f - .
+    .word DUP, LIT, first_builtin_word, LIT, last_builtin_word, FROMLINK, CELL, ADD, WITHIN, QDUP, QBRANCH, 1f - .
     .word NIP, EXIT
 1:  .word LIT, free_ram_start, LIT, ram_top, WITHIN, EXIT
 

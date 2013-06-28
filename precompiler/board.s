@@ -134,5 +134,7 @@ systick_handler:
 
     .include "CoreForth.s"
 
+    .set last_builtin_word, link
+
     defword "COLD", COLD
     .word PRECOMP_BEGIN, LIT, precompile_words, EVALUATE, PRECOMP_END

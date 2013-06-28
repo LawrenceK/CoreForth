@@ -39,4 +39,4 @@ precompile: precompiler.elf
 	qemu-system-arm -M lm3s6965evb -nographic -kernel precompiler.elf -semihosting > precompiled_words.s; stty sane
 
 precompiler.elf: precompiler.o
-	arm-none-eabi-ld $< -o $@ -T../precompiler/precompiler.ld
+	arm-none-eabi-ld $< -Map precompiler.map -o $@ -T../precompiler/precompiler.ld
